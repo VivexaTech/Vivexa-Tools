@@ -1,12 +1,12 @@
 import { MetadataRoute } from 'next';
 import { ALL_TOOLS } from '@/config/tools';
 import { CATEGORY_LIST } from '@/config/categories';
+import { SITE_CONFIG } from '@/config/site';
 
 export const dynamic = 'force-static';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://tools.vivexa.com';
-
+  const baseUrl = SITE_CONFIG.url;
   const lastMod = new Date('2026-11-01');
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -20,13 +20,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/tools`,
       lastModified: lastMod,
       changeFrequency: 'daily',
-      priority: 0.9,
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/about`,
       lastModified: lastMod,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: lastMod,
+      changeFrequency: 'monthly',
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/privacy-policy`,
@@ -44,7 +50,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/terms`,
       lastModified: lastMod,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.4,
     },
   ];
 
@@ -59,7 +65,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}/${tool.category}/${tool.slug}`,
     lastModified: lastMod,
     changeFrequency: 'weekly',
-    priority: tool.isPopular ? 0.8 : 0.7,
+    priority: tool.isPopular ? 0.85 : 0.75,
   }));
 
   return [...staticRoutes, ...categoryRoutes, ...toolRoutes];

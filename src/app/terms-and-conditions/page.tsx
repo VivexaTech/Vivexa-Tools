@@ -3,11 +3,22 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { ShieldCheck, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
+import { SITE_CONFIG } from '@/config/site';
 
 export const metadata: Metadata = {
   title: 'Terms and Conditions — Vivexa Tools | Developed by Vivexa Tech',
   description:
-    'Terms and conditions for using Vivexa Tools, developed by Vivexa Tech. Read our user responsibilities, permissible usage, and service limitations.'
+    'Terms and conditions for using Vivexa Tools, developed by Vivexa Tech. Read our user responsibilities, permissible usage, and service limitations.',
+  alternates: {
+    canonical: `${SITE_CONFIG.url}/terms-and-conditions`,
+  },
+  openGraph: {
+    title: 'Terms and Conditions | Vivexa Tools',
+    description: 'Terms and conditions for using the Vivexa Tools platform.',
+    url: `${SITE_CONFIG.url}/terms-and-conditions`,
+    siteName: SITE_CONFIG.name,
+    type: 'website',
+  },
 };
 
 export default function TermsAndConditionsPage() {

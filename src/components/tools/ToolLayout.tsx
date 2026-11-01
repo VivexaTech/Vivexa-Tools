@@ -8,6 +8,7 @@ import { FaqAccordion } from '@/components/common/FaqAccordion';
 import { RelatedToolsList } from '@/components/common/RelatedToolsList';
 import { WorkspaceDispatcher } from '@/components/tools/WorkspaceDispatcher';
 import { ShieldCheck, Cpu } from 'lucide-react';
+import { SITE_CONFIG } from '@/config/site';
 
 interface ToolLayoutProps {
   tool: ToolDefinition;
@@ -22,37 +23,86 @@ export const ToolLayout: React.FC<ToolLayoutProps> = ({ tool }) => {
     { label: tool.name }
   ];
 
+  const toolCanonicalUrl = `${SITE_CONFIG.url}/${tool.category}/${tool.slug}`;
+
   const jsonLdTool = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: tool.name,
     operatingSystem: 'All',
     applicationCategory: 'UtilitiesApplication',
+    browserRequirements: 'Requires JavaScript. Requires HTML5.',
     description: tool.fullDescription,
-    url: `https://tools.vivexa.com/${tool.category}/${tool.slug}`,
+    url: toolCanonicalUrl,
+    image: `${SITE_CONFIG.url}/favicon-512x512.png`,
     offers: {
       '@type': 'Offer',
       price: '0',
-      priceCurrency: 'USD'
+      priceCurrency: 'USD',
     },
     creator: {
       '@type': 'Organization',
-      name: 'Vivexa Tech',
-      url: 'https://www.vivexatech.in/'
-    }
+      name: SITE_CONFIG.creator,
+      url: SITE_CONFIG.creatorUrl,
+    },
   };
 
-  const jsonLdHowTo = tool.instructions && tool.instructions.length > 0 ? {
+  const jsonLdHowTo =
+    tool.instructions && tool.instructions.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'HowTo',
+          name: `How to use ${tool.name}`,
+          description: `Step-by-step instructions for using ${tool.name} online for free.`,
+          step: tool.instructions.map((inst, idx) => ({
+            '@type': 'HowToStep',
+            position: idx + 1,
+            name: inst.title,
+            text: inst.description,
+          })),
+        }
+      : null;
+
+  const jsonLdBreadcrumbs = {
     '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    name: `How to use ${tool.name}`,
-    description: `Step-by-step instructions for using ${tool.name} online for free.`,
-    step: tool.instructions.map((inst) => ({
-      '@type': 'HowToStep',
-      name: inst.title,
-      text: inst.description
-    }))
-  } : null;
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_CONFIG.url,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: category.name,
+        item: `${SITE_CONFIG.url}/${category.slug}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: tool.name,
+        item: toolCanonicalUrl,
+      },
+    ],
+  };
+
+  const jsonLdFaq =
+    tool.faqs && tool.faqs.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: tool.faqs.map((faq) => ({
+            '@type': 'Question',
+            name: faq.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: faq.answer,
+            },
+          })),
+        }
+      : null;
 
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 pb-16 transition-colors">
@@ -60,10 +110,20 @@ export const ToolLayout: React.FC<ToolLayoutProps> = ({ tool }) => {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdTool) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumbs) }}
+      />
       {jsonLdHowTo && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdHowTo) }}
+        />
+      )}
+      {jsonLdFaq && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
         />
       )}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">

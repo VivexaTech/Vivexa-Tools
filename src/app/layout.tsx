@@ -4,6 +4,7 @@ import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { SITE_CONFIG } from '@/config/site';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -16,48 +17,65 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_CONFIG.url),
   title: {
-    template: '%s | Vivexa Tools',
-    default: 'Vivexa Tools - All Your Everyday Online Tools. One Simple Place.'
+    template: `%s | ${SITE_CONFIG.name}`,
+    default: `${SITE_CONFIG.name} - All Your Everyday Online Tools. One Simple Place.`,
   },
-  description:
-    'Free online tools to convert, compress, edit, and organize files. PDF tools, image editor, passport photo maker, video trimmer, audio converter, and color picker. 100% private in-browser processing.',
-  keywords: [
-    'online tools',
-    'merge pdf',
-    'compress image',
-    'passport photo maker',
-    'split pdf',
-    'pdf to jpg',
-    'image resizer',
-    'video trimmer',
-    'audio converter',
-    'color picker',
-    'vivexa tools'
-  ],
-  authors: [{ name: 'Vivexa Tech', url: 'https://www.vivexatech.in/' }],
-  creator: 'Vivexa Tech',
-  publisher: 'Vivexa Tech',
-  metadataBase: new URL('https://tools.vivexa.com'),
+  description: SITE_CONFIG.description,
+  keywords: SITE_CONFIG.keywords,
+  authors: [{ name: SITE_CONFIG.creator, url: SITE_CONFIG.creatorUrl }],
+  creator: SITE_CONFIG.creator,
+  publisher: SITE_CONFIG.creator,
+  alternates: {
+    canonical: SITE_CONFIG.url,
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' }
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }
-    ]
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Vivexa Tools - All Your Everyday Tools in One Place',
-    description: 'Convert, compress, edit, and organize files with 100% browser privacy. Developed by Vivexa Tech.',
-    siteName: 'Vivexa Tools',
+    title: `${SITE_CONFIG.name} - Free & Private Online Tools`,
+    description: SITE_CONFIG.description,
+    url: SITE_CONFIG.url,
+    siteName: SITE_CONFIG.name,
+    locale: SITE_CONFIG.locale,
     type: 'website',
-    images: [{ url: '/favicon-512x512.png', width: 512, height: 512, alt: 'Vivexa Tools Logo' }]
-  }
+    images: [
+      {
+        url: `${SITE_CONFIG.url}/favicon-512x512.png`,
+        width: 512,
+        height: 512,
+        alt: `${SITE_CONFIG.name} Logo`,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${SITE_CONFIG.name} - Free & Private Online Utilities`,
+    description: SITE_CONFIG.description,
+    images: [`${SITE_CONFIG.url}/favicon-512x512.png`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  category: 'technology',
 };
 
 export default function RootLayout({
@@ -68,28 +86,28 @@ export default function RootLayout({
   const jsonLdOrg = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Vivexa Tech',
-    url: 'https://www.vivexatech.in/',
-    logo: 'https://tools.vivexa.com/favicon-512x512.png',
-    sameAs: ['https://www.vivexatech.in/']
+    name: SITE_CONFIG.creator,
+    url: SITE_CONFIG.creatorUrl,
+    logo: `${SITE_CONFIG.url}/favicon-512x512.png`,
+    sameAs: [SITE_CONFIG.creatorUrl, SITE_CONFIG.url],
   };
 
   const jsonLdWebSite = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Vivexa Tools',
-    url: 'https://tools.vivexa.com',
-    description: 'Free online tools to convert, compress, edit, and organize files with 100% in-browser privacy.',
+    name: SITE_CONFIG.name,
+    url: SITE_CONFIG.url,
+    description: SITE_CONFIG.description,
     author: {
       '@type': 'Organization',
-      name: 'Vivexa Tech',
-      url: 'https://www.vivexatech.in/'
+      name: SITE_CONFIG.creator,
+      url: SITE_CONFIG.creatorUrl,
     },
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://tools.vivexa.com/?q={search_term_string}',
-      'query-input': 'required name=search_term_string'
-    }
+      target: `${SITE_CONFIG.url}/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   return (

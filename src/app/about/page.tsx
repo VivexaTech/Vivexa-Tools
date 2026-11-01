@@ -2,10 +2,23 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { ShieldCheck, Cpu, Lock, Zap, CheckCircle2, Heart } from 'lucide-react';
+import { SITE_CONFIG } from '@/config/site';
 
 export const metadata: Metadata = {
-  title: 'About Us - Privacy-Focused Local Online Tools',
-  description: 'Learn about Vivexa Tools, our 100% in-browser processing architecture, and our mission to provide secure, ad-free online utilities.'
+  title: 'About Us - Privacy-Focused Local Online Tools | Vivexa Tools',
+  description:
+    'Learn about Vivexa Tools, developed by Vivexa Tech. Discover our 100% in-browser processing architecture and mission to provide secure, serverless online utilities.',
+  alternates: {
+    canonical: `${SITE_CONFIG.url}/about`,
+  },
+  openGraph: {
+    title: 'About Vivexa Tools - Privacy-First Web Utilities',
+    description: 'Learn about Vivexa Tools and our zero-server file processing architecture.',
+    url: `${SITE_CONFIG.url}/about`,
+    siteName: SITE_CONFIG.name,
+    type: 'website',
+    images: [{ url: `${SITE_CONFIG.url}/favicon-512x512.png`, width: 512, height: 512, alt: 'About Vivexa Tools' }],
+  },
 };
 
 export default function AboutPage() {

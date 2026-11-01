@@ -3,11 +3,22 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { ShieldCheck, Lock, ExternalLink, Cpu, CheckCircle2 } from 'lucide-react';
+import { SITE_CONFIG } from '@/config/site';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — 100% Client-Side Processing | Vivexa Tools',
   description:
-    'Comprehensive privacy policy for Vivexa Tools, developed by Vivexa Tech. Learn how our 100% client-side architecture keeps your documents and media private on your device.'
+    'Comprehensive privacy policy for Vivexa Tools, developed by Vivexa Tech. Learn how our 100% client-side architecture keeps your documents and media private on your device.',
+  alternates: {
+    canonical: `${SITE_CONFIG.url}/privacy-policy`,
+  },
+  openGraph: {
+    title: 'Privacy Policy | Vivexa Tools',
+    description: 'Learn how our zero-server processing architecture keeps your files 100% private.',
+    url: `${SITE_CONFIG.url}/privacy-policy`,
+    siteName: SITE_CONFIG.name,
+    type: 'website',
+  },
 };
 
 export default function PrivacyPolicyPage() {

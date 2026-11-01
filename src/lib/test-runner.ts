@@ -390,6 +390,26 @@ async function runTests() {
     assert(false, `PDF to Word layout verification error: ${err.message}`);
   }
 
+  // Test 16: Official SEO Domain & Sitemap Verification
+  try {
+    const { SITE_CONFIG, absoluteUrl } = await import('@/config/site');
+    const robotsModule = await import('@/app/robots');
+    const sitemapModule = await import('@/app/sitemap');
+
+    assert(SITE_CONFIG.url === 'https://tools.vivexatech.in', 'SITE_CONFIG.url points to official domain https://tools.vivexatech.in');
+    assert(absoluteUrl('/pdf/merge-pdf') === 'https://tools.vivexatech.in/pdf/merge-pdf', 'absoluteUrl generates canonical path');
+
+    const robotsConfig = robotsModule.default();
+    assert(robotsConfig.sitemap === 'https://tools.vivexatech.in/sitemap.xml', 'robots.txt specifies correct canonical sitemap URL');
+    assert(robotsConfig.host === 'https://tools.vivexatech.in', 'robots.txt specifies official host');
+
+    const sitemapList = sitemapModule.default();
+    assert(sitemapList.length > 60, `sitemap contains full route set (${sitemapList.length} routes)`);
+    assert(sitemapList.every((item: any) => item.url.startsWith('https://tools.vivexatech.in')), 'all sitemap URLs use official https://tools.vivexatech.in domain');
+  } catch (err: any) {
+    assert(false, `SEO configuration verification error: ${err.message}`);
+  }
+
   console.log(`\n========================================`);
   console.log(`TOTAL TESTS: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
   console.log(`========================================\n`);
