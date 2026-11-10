@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Dropzone } from '@/components/common/Dropzone';
 import { getPdfPageCount, signPdf } from '@/lib/pdf/pdfProcessing';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { getPdfJs } from '@/lib/pdf/pdfOcrHelper';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { 
   PenTool, 
   Upload, 
@@ -47,6 +49,43 @@ export const SignPdfWorkspace: React.FC = () => {
 
   // Result
   const [signedBytes, setSignedBytes] = useState<Uint8Array | null>(null);
+  const pageCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isPageRendering, setIsPageRendering] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+    async function renderPage() {
+      if (!file || !pageCanvasRef.current) return;
+      setIsPageRendering(true);
+      try {
+        const pdfjs = await getPdfJs();
+        const ab = await file.arrayBuffer();
+        const loadingTask = pdfjs.getDocument({
+          data: new Uint8Array(ab),
+          useWorkerFetch: false,
+          useSystemFonts: true,
+        } as any);
+        const doc = await loadingTask.promise;
+        const page = await doc.getPage(targetPage);
+        const canvas = pageCanvasRef.current;
+        if (!canvas || isCancelled) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const viewport = page.getViewport({ scale: 0.5 });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await (page.render as any)({ canvasContext: ctx, viewport, canvas }).promise;
+      } catch (err) {
+        console.error('Page render error:', err);
+      } finally {
+        if (!isCancelled) setIsPageRendering(false);
+      }
+    }
+    renderPage();
+    return () => {
+      isCancelled = true;
+    };
+  }, [file, targetPage]);
 
   const handlePdfSelected = async (files: File[]) => {
     if (files.length === 0) return;
@@ -418,24 +457,14 @@ export const SignPdfWorkspace: React.FC = () => {
                 <span>Page {targetPage} Placement Preview</span>
               </span>
 
-              {/* Simulated PDF Sheet */}
-              <div className="relative w-64 h-84 bg-white rounded-lg shadow-md border border-slate-300 p-4 flex flex-col justify-between overflow-hidden">
-                <div className="space-y-2 opacity-20 pointer-events-none">
-                  <div className="h-3 bg-slate-400 rounded w-3/4" />
-                  <div className="h-2 bg-slate-400 rounded w-full" />
-                  <div className="h-2 bg-slate-400 rounded w-5/6" />
-                  <div className="h-2 bg-slate-400 rounded w-full" />
-                  <div className="h-2 bg-slate-400 rounded w-4/5" />
-                  <div className="h-2 bg-slate-400 rounded w-2/3" />
-                  <div className="h-2 bg-slate-400 rounded w-full" />
-                  <div className="h-2 bg-slate-400 rounded w-1/2" />
-                </div>
-
-                {/* Simulated Signature Line at Bottom Right */}
-                <div className="border-t border-slate-300 pt-1 text-[9px] text-slate-400 text-right opacity-60">
-                  Authorized Signatory
-                </div>
-
+              {/* Real PDF Page Placement Canvas */}
+              <div className="relative shadow-md rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 bg-white max-w-[280px]">
+                <canvas ref={pageCanvasRef} className="block w-full h-auto" />
+                {isPageRendering && (
+                  <div className="absolute inset-0 bg-white/70 dark:bg-slate-900/70 flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+                  </div>
+                )}
                 {/* Live Positioned Signature Preview */}
                 {signatureDataUrl && (
                   <div
@@ -525,6 +554,11 @@ export const SignPdfWorkspace: React.FC = () => {
                   <Download className="w-4 h-4" />
                   <span>Download Signed PDF</span>
                 </button>
+              </div>
+
+              {/* Signed Document Live Preview */}
+              <div className="pt-3">
+                <RealPdfViewer source={signedBytes} title={`Signed: ${file?.name || 'document.pdf'}`} />
               </div>
             </div>
           )}

@@ -4,6 +4,13 @@ import { IMAGE_TOOLS } from './imageTools';
 import { AUDIO_TOOLS } from './audioTools';
 import { VIDEO_TOOLS } from './videoTools';
 import { COLOR_TOOLS } from './colorTools';
+import { QR_BARCODE_TOOLS } from './qrBarcodeTools';
+import { CALCULATOR_TOOLS } from './calculatorTools';
+import { DEVELOPER_TOOLS } from './developerTools';
+import { VOICE_TOOLS } from './voiceTools';
+import { STUDENT_TOOLS } from './studentTools';
+import { BUSINESS_TOOLS } from './businessTools';
+import { DOCUMENT_TOOLS } from './documentTools';
 
 export const ALL_TOOLS: ToolDefinition[] = [
   ...PDF_TOOLS,
@@ -11,9 +18,29 @@ export const ALL_TOOLS: ToolDefinition[] = [
   ...AUDIO_TOOLS,
   ...VIDEO_TOOLS,
   ...COLOR_TOOLS,
+  ...QR_BARCODE_TOOLS,
+  ...CALCULATOR_TOOLS,
+  ...DEVELOPER_TOOLS,
+  ...VOICE_TOOLS,
+  ...STUDENT_TOOLS,
+  ...BUSINESS_TOOLS,
+  ...DOCUMENT_TOOLS,
 ];
 
-export { PDF_TOOLS, IMAGE_TOOLS, AUDIO_TOOLS, VIDEO_TOOLS, COLOR_TOOLS };
+export {
+  PDF_TOOLS,
+  IMAGE_TOOLS,
+  AUDIO_TOOLS,
+  VIDEO_TOOLS,
+  COLOR_TOOLS,
+  QR_BARCODE_TOOLS,
+  CALCULATOR_TOOLS,
+  DEVELOPER_TOOLS,
+  VOICE_TOOLS,
+  STUDENT_TOOLS,
+  BUSINESS_TOOLS,
+  DOCUMENT_TOOLS,
+};
 
 export function getToolBySlug(slug: string): ToolDefinition | undefined {
   return ALL_TOOLS.find((t) => t.slug === slug || t.id === slug);

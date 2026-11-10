@@ -2,7 +2,21 @@ import React from 'react';
 import Link from 'next/link';
 import { CategoryDefinition } from '@/types/tools';
 import { getCategoryToolCount } from '@/config/tools';
-import { FileText, Image as ImageIcon, Music, Video, Pipette, ArrowRight } from 'lucide-react';
+import {
+  FileText,
+  Image as ImageIcon,
+  Music,
+  Video,
+  Pipette,
+  QrCode,
+  Calculator,
+  Code2,
+  Mic,
+  GraduationCap,
+  Briefcase,
+  FileSpreadsheet,
+  ArrowRight,
+} from 'lucide-react';
 
 interface CategoryCardProps {
   category: CategoryDefinition;
@@ -14,6 +28,13 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Music,
   Video,
   Pipette,
+  QrCode,
+  Calculator,
+  Code2,
+  Mic,
+  GraduationCap,
+  Briefcase,
+  FileSpreadsheet,
 };
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {

@@ -6,6 +6,7 @@ import { encryptPDF } from '@pdfsmaller/pdf-encrypt';
 import { isEncrypted } from '@pdfsmaller/pdf-decrypt';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
 import { getPdfPageCount } from '@/lib/pdf/pdfProcessing';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { 
   Lock, 
   CheckCircle2, 
@@ -349,6 +350,16 @@ export const ProtectPdfWorkspace: React.FC = () => {
                   <span>Download Protected PDF</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Real PDF Preview of original file */}
+          {file && !protectedBytes && (
+            <div className="pt-2 space-y-2">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+                Document Page Preview:
+              </span>
+              <RealPdfViewer source={file} title={file.name} />
             </div>
           )}
         </div>

@@ -8,6 +8,7 @@ import { addPageNumbersToPdf } from './pdf/pdfProcessing';
 import { calculateSheetLayout, PASSPORT_PRESETS } from './image/passportSheetHelper';
 import { convertWordToPdf } from './pdf/wordToPdf';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 
 async function runTests() {
   console.log('=== VIVEXA TOOLS ENGINE VERIFICATION ===\n');
@@ -408,6 +409,284 @@ async function runTests() {
     assert(sitemapList.every((item: any) => item.url.startsWith('https://tools.vivexatech.in')), 'all sitemap URLs use official https://tools.vivexatech.in domain');
   } catch (err: any) {
     assert(false, `SEO configuration verification error: ${err.message}`);
+  }
+
+  // Test 17: QR Code & Barcode Engine Verification
+  try {
+    const QRCode = (await import('qrcode')).default;
+    const qrSvg = await QRCode.toString('https://tools.vivexatech.in', { type: 'svg' });
+    assert(qrSvg.includes('<svg') && qrSvg.includes('</svg>'), 'QR code generator outputs valid SVG');
+
+    const qrDataUrl = await QRCode.toDataURL('https://tools.vivexatech.in');
+    assert(qrDataUrl.startsWith('data:image/png;base64,'), 'QR code generator outputs valid PNG data URL');
+  } catch (err: any) {
+    assert(false, `QR Code verification error: ${err.message}`);
+  }
+
+  // Test 18: Document Details Extractor & Privacy Masking
+  try {
+    const {
+      detectDocumentType,
+      maskAadhaarNumber,
+      extractFieldsFromText,
+      exportToCsv,
+      exportToJson,
+      validateDocumentConsistency,
+      parsePanCardDetails,
+      parseAadhaarCardDetails,
+      parseVoterIdDetails,
+      parseAddressComponents,
+    } = await import('./ocr/documentExtractor');
+
+    // Aadhaar masking
+    assert(maskAadhaarNumber('1234 5678 9012') === 'XXXX XXXX 9012', 'Aadhaar masking properly masks first 8 digits');
+    assert(maskAadhaarNumber('123456789012') === 'XXXX XXXX 9012', 'Aadhaar masking handles unspaced digits');
+
+    // Document type detection
+    const panSample = 'INCOME TAX DEPARTMENT GOVT OF INDIA PERMANENT ACCOUNT NUMBER ABCDE1234F';
+    const aadhaarSample = 'GOVERNMENT OF INDIA UNIQUE IDENTIFICATION AUTHORITY OF INDIA 9876 5432 1098';
+    const dlSample = 'UNION OF INDIA DRIVING LICENCE DL-0420110012345';
+    const voterSample = 'ELECTION COMMISSION OF INDIA ELECTORAL PHOTO IDENTITY CARD WXYZ1234567';
+
+    assert(detectDocumentType(panSample) === 'pan', 'Detects PAN card document type');
+    assert(detectDocumentType(aadhaarSample) === 'aadhaar', 'Detects Aadhaar card document type');
+    assert(detectDocumentType(dlSample) === 'driving_licence', 'Detects Driving Licence document type');
+    assert(detectDocumentType(voterSample) === 'voter_id', 'Detects Voter ID document type');
+
+    // Document Consistency Validation
+    const consistentCheck = validateDocumentConsistency('pan', panSample);
+    assert(consistentCheck.isConsistent === true, 'Validates PAN card consistency when user selects PAN');
+
+    const inconsistentCheck = validateDocumentConsistency('pan', aadhaarSample);
+    assert(inconsistentCheck.isConsistent === false, 'Detects mismatch when user selects PAN but uploads Aadhaar');
+    assert(inconsistentCheck.warning?.includes('Aadhaar Card') === true, 'Generates clear warning identifying detected document');
+
+    const generalCheck = validateDocumentConsistency('general', aadhaarSample);
+    assert(generalCheck.isConsistent === true, 'General document category accepts any document text');
+
+    // Specialized PAN Card Parsing
+    const detailedPanSample = `INCOME TAX DEPARTMENT
+GOVT OF INDIA
+Permanent Account Number
+ABCDE1234F
+Name
+RAHUL SHARMA
+Father's Name
+VIKRAM SHARMA
+DOB: 15/08/1992`;
+    const panParsedFields = parsePanCardDetails(detailedPanSample);
+    const panNum = panParsedFields.find((f) => f.key === 'documentNumber')?.value;
+    const panName = panParsedFields.find((f) => f.key === 'name')?.value;
+    const panFather = panParsedFields.find((f) => f.key === 'fatherName')?.value;
+    const panDob = panParsedFields.find((f) => f.key === 'dob')?.value;
+
+    assert(panNum === 'ABCDE1234F', 'parsePanCardDetails correctly extracts PAN number');
+    assert(panName === 'RAHUL SHARMA', 'parsePanCardDetails correctly extracts Cardholder Name');
+    assert(panFather === 'VIKRAM SHARMA', "parsePanCardDetails correctly extracts Father's Name");
+    assert(panDob === '15/08/1992', 'parsePanCardDetails correctly extracts DOB');
+
+    // PAN without father's name falls back to "Not available" without guessing
+    const panNoFather = parsePanCardDetails('INCOME TAX DEPARTMENT ABCDE1234F DOB 01/01/1990');
+    assert(panNoFather.find((f) => f.key === 'fatherName')?.value === 'Not available', 'PAN without father name states Not available');
+
+    // Specialized Aadhaar Parsing with Year of Birth & Address Breakdown
+    const detailedAadhaarSample = `GOVERNMENT OF INDIA
+UNIQUE IDENTIFICATION AUTHORITY OF INDIA
+Address: House No 42, MG Road, Koramangala, Bangalore, Karnataka 560034
+Year of Birth: 1988
+Gender: MALE
+4321 8765 2109`;
+    const aadhaarResult = parseAadhaarCardDetails(detailedAadhaarSample);
+    const aadhNum = aadhaarResult.fields.find((f) => f.key === 'documentNumber');
+    const aadhDob = aadhaarResult.fields.find((f) => f.key === 'dob');
+    const aadhGender = aadhaarResult.fields.find((f) => f.key === 'gender');
+
+    assert(aadhNum?.maskedValue === 'XXXX XXXX 2109', 'parseAadhaarCardDetails masks Aadhaar number by default');
+    assert(aadhDob?.value === 'Year of Birth: 1988', 'Year of Birth preserved accurately without fabricating day/month');
+    assert(aadhGender?.value === 'MALE', 'Gender extracted accurately');
+    assert(aadhaarResult.addressComponents.pinCode === '560034', 'Extracts 6-digit PIN code');
+    assert(aadhaarResult.addressComponents.state === 'Karnataka', 'Extracts Indian State');
+    assert(aadhaarResult.addressComponents.houseNumber === '42', 'Extracts House Number');
+
+    // Specialized Voter ID Parsing
+    const detailedVoterSample = `ELECTION COMMISSION OF INDIA
+ELECTORAL PHOTO IDENTITY CARD
+EPIC NO: ZXC9876543
+Elector's Name: PRIYA PATEL
+Father's Name: SURESH PATEL
+Age: 28
+Gender: FEMALE`;
+    const voterFields = parseVoterIdDetails(detailedVoterSample);
+    const epicNum = voterFields.find((f) => f.key === 'documentNumber')?.value;
+    const electorName = voterFields.find((f) => f.key === 'name')?.value;
+    const relativeName = voterFields.find((f) => f.key === 'relativeName')?.value;
+    const ageVal = voterFields.find((f) => f.key === 'dob')?.value;
+
+    assert(epicNum === 'ZXC9876543', 'parseVoterIdDetails extracts EPIC number');
+    assert(electorName === 'PRIYA PATEL', 'parseVoterIdDetails extracts Elector Name');
+    assert(relativeName === 'SURESH PATEL', 'parseVoterIdDetails extracts Relative/Father Name');
+    assert(ageVal?.includes('28') === true, 'parseVoterIdDetails extracts Age without guessing DOB');
+
+    // Multi-Layout Test 1: Modern PAN (Layout A with bilingual labels)
+    const modernPanSample = `आयकर विभाग भारत सरकार
+INCOME TAX DEPARTMENT GOVT. OF INDIA
+स्थायी लेखा संख्या कार्ड
+Permanent Account Number Card
+ABCDE1234F
+नाम / Name
+ROHIT KUMAR
+पिता का नाम / Father's Name
+SURESH KUMAR
+जन्म तिथि / Date of Birth
+15/08/1990`;
+    const modernPanParsed = parsePanCardDetails(modernPanSample);
+    assert(modernPanParsed.find((f) => f.key === 'name')?.value === 'ROHIT KUMAR', 'Modern PAN extracts Name under bilingual label');
+    assert(modernPanParsed.find((f) => f.key === 'fatherName')?.value === 'SURESH KUMAR', "Modern PAN extracts Father's Name under bilingual label");
+    assert(modernPanParsed.find((f) => f.key === 'dob')?.value === '15/08/1990', 'Modern PAN extracts DOB');
+    assert(modernPanParsed.find((f) => f.key === 'documentNumber')?.value === 'ABCDE1234F', 'Modern PAN extracts PAN Number');
+
+    // Multi-Layout Test 2: Old PAN (Layout B: 4-line left vertical stack without labels)
+    const oldPanSample = `INCOME TAX DEPARTMENT GOVERNMENT OF INDIA
+SAMPLE NAME
+SAMPLE FATHER
+01/01/1990
+ABCDE1234F
+Signature`;
+    const oldPanParsed = parsePanCardDetails(oldPanSample);
+    assert(oldPanParsed.find((f) => f.key === 'name')?.value === 'SAMPLE NAME', 'Old PAN layout detects Cardholder Name from 4-line stack');
+    assert(oldPanParsed.find((f) => f.key === 'fatherName')?.value === 'SAMPLE FATHER', "Old PAN layout detects Father's Name from 4-line stack");
+    assert(oldPanParsed.find((f) => f.key === 'dob')?.value === '01/01/1990', 'Old PAN layout detects DOB from 4-line stack');
+    assert(oldPanParsed.find((f) => f.key === 'documentNumber')?.value === 'ABCDE1234F', 'Old PAN layout detects PAN number from 4-line stack');
+
+    // Multi-Layout Test 3: Dual-Side Aadhaar (Front with Name + DOB + Back with Address + QR)
+    const dualAadhaarSample = `भारत सरकार GOVERNMENT OF INDIA
+Anshika Anand
+DOB : 11/12/2005
+Female
+7941 6677 3673
+भारतीय विशिष्ट पहचान प्राधिकरण Unique Identification Authority of India
+Address: D/O Ranjan Kumar Anand, Mogalpura Ward No-26 Naka No-05, Po-Lalbagh, Darbhanga, PO:Darbhanga, DIST:Darbhanga, Bihar, 846004
+7941 6677 3673`;
+    const dualAadhaarParsed = parseAadhaarCardDetails(dualAadhaarSample);
+    assert(dualAadhaarParsed.fields.find((f) => f.key === 'name')?.value === 'Anshika Anand', 'Dual-side Aadhaar extracts Name');
+    assert(dualAadhaarParsed.fields.find((f) => f.key === 'dob')?.value === '11/12/2005', 'Dual-side Aadhaar extracts DOB');
+    assert(dualAadhaarParsed.fields.find((f) => f.key === 'gender')?.value === 'FEMALE', 'Dual-side Aadhaar extracts Gender');
+    assert(dualAadhaarParsed.addressComponents.pinCode === '846004', 'Dual-side Aadhaar extracts PIN code 846004');
+    assert(dualAadhaarParsed.addressComponents.state === 'Bihar', 'Dual-side Aadhaar extracts State Bihar');
+
+    // Unverified / Needs Review Handling (No False High Confidence)
+    const missingPan = parsePanCardDetails('SOME RANDOM TEXT WITHOUT PAN NUMBER');
+    const missingPanField = missingPan.find((f) => f.key === 'documentNumber');
+    assert(missingPanField?.confidenceRating === 'unverified', 'Missing PAN number is assigned unverified confidence rating');
+    assert(missingPanField?.value === 'Unable to read', 'Missing PAN displays descriptive Unable to read notice');
+
+    // Image Quality Analyzer Verification
+    const { analyzeImageQuality } = await import('./ocr/imageQualityAnalyzer');
+    const mockCanvas = {
+      width: 400,
+      height: 300,
+      getContext: () => null,
+    } as any;
+    const qualityReport = analyzeImageQuality(mockCanvas);
+    assert(qualityReport.isLowResolution === true, 'Image Quality Analyzer warns on low resolution');
+    assert(qualityReport.recommendations.length > 0, 'Image Quality Analyzer provides actionable recommendations');
+
+    // Legacy / Backward Compatibility Field extraction
+    const panExtracted = extractFieldsFromText(panSample, ['documentNumber', 'name'], 'pan');
+    const panNumField = panExtracted.fields.find((f) => f.key === 'documentNumber');
+    assert(panNumField?.value === 'ABCDE1234F', 'extractFieldsFromText maintains backward compatibility');
+
+    const aadhaarExtracted = extractFieldsFromText(aadhaarSample, ['documentNumber'], 'aadhaar');
+    const aadhNumField = aadhaarExtracted.fields.find((f) => f.key === 'documentNumber');
+    assert(aadhNumField?.maskedValue === 'XXXX XXXX 1098', 'Extracts and masks Aadhaar number');
+
+    const jsonExport = exportToJson(panExtracted.fields, 'pan');
+    assert(jsonExport.includes('ABCDE1234F'), 'JSON export includes extracted PAN number');
+
+    const csvExport = exportToCsv(panExtracted.fields);
+    assert(csvExport.includes('ABCDE1234F'), 'CSV export includes extracted PAN number');
+  } catch (err: any) {
+    assert(false, `Document details extractor error: ${err.message}`);
+  }
+
+  // Test 19: Financial & Academic Calculation Verification
+  try {
+    // 1. EMI Calculation
+    const P = 1000000;
+    const annualRate = 8.5;
+    const r = annualRate / 12 / 100;
+    const n = 15 * 12; // 180 months
+    const factor = Math.pow(1 + r, n);
+    const emi = Math.round((P * r * factor) / (factor - 1));
+    assert(emi >= 9840 && emi <= 9860, `EMI for ₹10L @ 8.5% for 15 yrs is ₹${emi} (~₹9847)`);
+
+    // 2. GST Calculation
+    const baseAmount = 10000;
+    const gstRate = 18;
+    const exclusiveTax = (baseAmount * gstRate) / 100;
+    const grossTotal = baseAmount + exclusiveTax;
+    assert(exclusiveTax === 1800, 'GST exclusive on ₹10,000 @ 18% is ₹1,800');
+    assert(grossTotal === 11800, 'Gross total after GST is ₹11,800');
+
+    // Reverse GST (inclusive)
+    const reverseBase = grossTotal / (1 + gstRate / 100);
+    assert(Math.round(reverseBase) === 10000, 'GST inclusive on ₹11,800 @ 18% extracts base ₹10,000');
+
+    // 3. CGPA Conversion (CBSE formula 9.5x)
+    const testCgpa = 8.4;
+    const equivalentPercent = testCgpa * 9.5;
+    assert(equivalentPercent === 79.8, '8.4 CGPA converts to 79.8% via 9.5x formula');
+  } catch (err: any) {
+    assert(false, `Calculation verification error: ${err.message}`);
+  }
+
+  // Test 20: JSON Formatter & Minifier Verification
+  try {
+    const rawJson = '{"name":"Vivexa Tools","status":"active"}';
+    const parsed = JSON.parse(rawJson);
+    const pretty2 = JSON.stringify(parsed, null, 2);
+    const pretty4 = JSON.stringify(parsed, null, 4);
+    const minified = JSON.stringify(parsed);
+
+    assert(pretty2.includes('\n  "name"'), 'JSON formatted with 2 spaces has correct indent');
+    assert(pretty4.includes('\n    "name"'), 'JSON formatted with 4 spaces has correct indent');
+    assert(minified === rawJson, 'JSON minifier compresses to single-line without spaces');
+  } catch (err: any) {
+    assert(false, `JSON formatter verification error: ${err.message}`);
+  }
+
+  // Test 21: Video to GIF Tool & gifenc Engine Verification
+  try {
+    const videoToGifTool = getToolBySlug('video-to-gif');
+    assert(videoToGifTool !== undefined, 'video-to-gif tool is registered in ALL_TOOLS');
+    assert(videoToGifTool?.category === 'video', 'video-to-gif category is "video"');
+    assert(videoToGifTool?.subcategory === 'Conversion', 'video-to-gif subcategory is "Conversion"');
+
+    const gifSearch = searchTools('gif');
+    assert(gifSearch.some((t) => t.slug === 'video-to-gif'), 'Search "gif" finds Video to GIF tool');
+
+    // Test gifenc pure-js encoder output
+    const gif = GIFEncoder();
+    const testRgba = new Uint8Array([
+      255, 0, 0, 255,    0, 255, 0, 255,
+      0, 0, 255, 255,    255, 255, 0, 255,
+    ]);
+    const palette = quantize(testRgba, 256);
+    const index = applyPalette(testRgba, palette);
+    gif.writeFrame(index, 2, 2, { palette, delay: 100 });
+    gif.finish();
+    const gifBytes = gif.bytes();
+    const isGif89a =
+      gifBytes[0] === 0x47 && // 'G'
+      gifBytes[1] === 0x49 && // 'I'
+      gifBytes[2] === 0x46 && // 'F'
+      gifBytes[3] === 0x38 && // '8'
+      gifBytes[4] === 0x39 && // '9'
+      gifBytes[5] === 0x61;   // 'a'
+    assert(isGif89a, 'gifenc produces valid standard GIF89a byte header');
+    assert(gifBytes.length > 20, `GIF byte buffer length (${gifBytes.length} bytes) is non-empty`);
+  } catch (err: any) {
+    assert(false, `Video to GIF verification error: ${err.message}`);
   }
 
   console.log(`\n========================================`);

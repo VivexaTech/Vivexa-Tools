@@ -14,6 +14,7 @@ import {
   getPdfPageCount 
 } from '@/lib/pdf/pdfProcessing';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { 
   FileText, 
   CheckCircle, 
@@ -41,6 +42,7 @@ export const PdfToolsWorkspace: React.FC<PdfToolsWorkspaceProps> = ({ toolSlug }
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [outputBytes, setOutputBytes] = useState<Uint8Array | null>(null);
   const [outputStats, setOutputStats] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<'source' | 'output'>('source');
 
   // Settings
   const [rotationDegrees, setRotationDegrees] = useState<number>(90);
@@ -121,6 +123,7 @@ export const PdfToolsWorkspace: React.FC<PdfToolsWorkspaceProps> = ({ toolSlug }
           setOutputStats(`Signature embedded on page 1`);
         }
       }
+      setPreviewMode('output');
     } catch (err: any) {
       setErrorMessage(err.message || 'Operation failed. Please verify settings.');
     } finally {
@@ -482,6 +485,48 @@ export const PdfToolsWorkspace: React.FC<PdfToolsWorkspaceProps> = ({ toolSlug }
                   <span>Download Result PDF</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Real Live PDF Document Preview */}
+          {(file || outputBytes) && (
+            <div className="pt-2 space-y-3">
+              {outputBytes && file && (
+                <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Preview:</span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode('output')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      previewMode === 'output'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Processed Result
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode('source')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      previewMode === 'source'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Original Upload
+                  </button>
+                </div>
+              )}
+
+              <RealPdfViewer
+                source={previewMode === 'output' && outputBytes ? outputBytes : file}
+                title={
+                  previewMode === 'output' && outputBytes
+                    ? `Processed Result: ${file?.name || 'Output.pdf'}`
+                    : `Original File: ${file?.name || 'Document'}`
+                }
+              />
             </div>
           )}
         </div>

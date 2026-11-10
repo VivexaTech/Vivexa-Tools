@@ -20,6 +20,26 @@ import { ProtectPdfWorkspace } from '@/components/workspaces/ProtectPdfWorkspace
 import { UnlockPdfWorkspace } from '@/components/workspaces/UnlockPdfWorkspace';
 import { PdfToWordWorkspace } from '@/components/workspaces/PdfToWordWorkspace';
 import { WordToPdfWorkspace } from '@/components/workspaces/WordToPdfWorkspace';
+import { QrCodeGeneratorWorkspace } from '@/components/workspaces/QrCodeGeneratorWorkspace';
+import { QrCodeScannerWorkspace } from '@/components/workspaces/QrCodeScannerWorkspace';
+import { BarcodeGeneratorWorkspace } from '@/components/workspaces/BarcodeGeneratorWorkspace';
+import { BarcodeScannerWorkspace } from '@/components/workspaces/BarcodeScannerWorkspace';
+import { AgeCalculatorWorkspace } from '@/components/workspaces/AgeCalculatorWorkspace';
+import { EmiCalculatorWorkspace } from '@/components/workspaces/EmiCalculatorWorkspace';
+import { GstCalculatorWorkspace } from '@/components/workspaces/GstCalculatorWorkspace';
+import { UnitConverterWorkspace } from '@/components/workspaces/UnitConverterWorkspace';
+import { CurrencyConverterWorkspace } from '@/components/workspaces/CurrencyConverterWorkspace';
+import { JsonFormatterWorkspace } from '@/components/workspaces/JsonFormatterWorkspace';
+import { SpeechToTextWorkspace } from '@/components/workspaces/SpeechToTextWorkspace';
+import { TextToSpeechWorkspace } from '@/components/workspaces/TextToSpeechWorkspace';
+import { CgpaConverterWorkspace } from '@/components/workspaces/CgpaConverterWorkspace';
+import { TypingSpeedTestWorkspace } from '@/components/workspaces/TypingSpeedTestWorkspace';
+import { BusinessDocumentWorkspace } from '@/components/workspaces/BusinessDocumentWorkspace';
+import { IncomeExpenseTrackerWorkspace } from '@/components/workspaces/IncomeExpenseTrackerWorkspace';
+import { ResumeGeneratorWorkspace } from '@/components/workspaces/ResumeGeneratorWorkspace';
+import { CollageMakerWorkspace } from '@/components/workspaces/CollageMakerWorkspace';
+import { DocumentDetailsExtractorWorkspace } from '@/components/workspaces/DocumentDetailsExtractorWorkspace';
+import { VideoToGifWorkspace } from '@/components/workspaces/VideoToGifWorkspace';
 import { AlertTriangle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
@@ -147,6 +167,9 @@ export const WorkspaceDispatcher: React.FC<WorkspaceDispatcherProps> = ({ tool }
   }
 
   // 4. Video Tools
+  if (tool.slug === 'video-to-gif') {
+    return <VideoToGifWorkspace />;
+  }
   if (tool.category === 'video') {
     return <VideoWorkspace toolSlug={tool.slug} />;
   }
@@ -154,6 +177,89 @@ export const WorkspaceDispatcher: React.FC<WorkspaceDispatcherProps> = ({ tool }
   // 5. Color Picker Tools
   if (tool.category === 'color') {
     return <ColorPickerWorkspace mode={tool.slug.includes('pdf') ? 'pdf' : 'image'} />;
+  }
+
+  // 6. QR & Barcode Tools
+  if (tool.slug === 'qr-code-generator') {
+    return <QrCodeGeneratorWorkspace />;
+  }
+  if (tool.slug === 'qr-code-scanner') {
+    return <QrCodeScannerWorkspace />;
+  }
+  if (tool.slug === 'barcode-generator') {
+    return <BarcodeGeneratorWorkspace />;
+  }
+  if (tool.slug === 'barcode-scanner') {
+    return <BarcodeScannerWorkspace />;
+  }
+
+  // 7. Calculators & Converters
+  if (tool.slug === 'age-calculator') {
+    return <AgeCalculatorWorkspace />;
+  }
+  if (tool.slug === 'emi-calculator') {
+    return <EmiCalculatorWorkspace />;
+  }
+  if (tool.slug === 'gst-calculator') {
+    return <GstCalculatorWorkspace />;
+  }
+  if (tool.slug === 'unit-converter') {
+    return <UnitConverterWorkspace />;
+  }
+  if (tool.slug === 'currency-converter') {
+    return <CurrencyConverterWorkspace />;
+  }
+
+  // 8. Developer Tools
+  if (tool.slug === 'json-formatter') {
+    return <JsonFormatterWorkspace />;
+  }
+
+  // 9. Voice & Speech Tools
+  if (tool.slug === 'speech-to-text') {
+    return <SpeechToTextWorkspace />;
+  }
+  if (tool.slug === 'text-to-speech') {
+    return <TextToSpeechWorkspace />;
+  }
+
+  // 10. Student Tools
+  if (tool.slug === 'cgpa-to-percentage') {
+    return <CgpaConverterWorkspace initialMode="cgpa-to-percentage" />;
+  }
+  if (tool.slug === 'percentage-to-cgpa') {
+    return <CgpaConverterWorkspace initialMode="percentage-to-cgpa" />;
+  }
+  if (tool.slug === 'typing-speed-test') {
+    return <TypingSpeedTestWorkspace />;
+  }
+
+  // 11. Business & Finance Tools
+  if (tool.slug === 'payslip-generator') {
+    return <BusinessDocumentWorkspace initialType="payslip" />;
+  }
+  if (tool.slug === 'invoice-generator') {
+    return <BusinessDocumentWorkspace initialType="invoice" />;
+  }
+  if (tool.slug === 'quotation-generator') {
+    return <BusinessDocumentWorkspace initialType="quotation" />;
+  }
+  if (tool.slug === 'receipt-generator') {
+    return <BusinessDocumentWorkspace initialType="receipt" />;
+  }
+  if (tool.slug === 'income-expense-tracker') {
+    return <IncomeExpenseTrackerWorkspace />;
+  }
+
+  // 12. Documents & Design Tools
+  if (tool.slug === 'resume-generator') {
+    return <ResumeGeneratorWorkspace />;
+  }
+  if (tool.slug === 'collage-maker') {
+    return <CollageMakerWorkspace />;
+  }
+  if (tool.slug === 'document-details-extractor') {
+    return <DocumentDetailsExtractorWorkspace />;
   }
 
   // Default fallback

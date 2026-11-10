@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Dropzone } from '@/components/common/Dropzone';
 import { mergePdfs, getPdfPageCount } from '@/lib/pdf/pdfProcessing';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { 
   FileText, 
   ArrowUp, 
@@ -28,6 +29,7 @@ export const PdfMergeWorkspace: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mergedBlob, setMergedBlob] = useState<Uint8Array | null>(null);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [mergedStats, setMergedStats] = useState<{ totalPages: number; size: number } | null>(null);
 
   const handleFilesAdded = async (newFiles: File[]) => {
@@ -288,6 +290,43 @@ export const PdfMergeWorkspace: React.FC = () => {
                   <span>Download Merged PDF</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Real Live PDF Preview for Merged Result or Selected Input */}
+          {(mergedBlob || pdfFiles.length > 0) && (
+            <div className="pt-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  {mergedBlob ? 'Merged Document Output Preview:' : 'Source Document Preview:'}
+                </span>
+                {!mergedBlob && pdfFiles.length > 1 && (
+                  <select
+                    value={selectedFileId || pdfFiles[0]?.id}
+                    onChange={(e) => setSelectedFileId(e.target.value)}
+                    className="text-xs py-1 px-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300"
+                  >
+                    {pdfFiles.map((p, i) => (
+                      <option key={p.id} value={p.id}>
+                        {i + 1}. {p.file.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <RealPdfViewer
+                source={
+                  mergedBlob
+                    ? mergedBlob
+                    : pdfFiles.find((p) => p.id === (selectedFileId || pdfFiles[0]?.id))?.file || null
+                }
+                title={
+                  mergedBlob
+                    ? 'Combined Merged Output.pdf'
+                    : pdfFiles.find((p) => p.id === (selectedFileId || pdfFiles[0]?.id))?.file.name
+                }
+              />
             </div>
           )}
         </div>

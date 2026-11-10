@@ -279,26 +279,36 @@ export async function processPdfForOcr(
   };
 }
 
+export interface ImageOcrDetailedResult {
+  text: string;
+  lines: Array<{
+    text: string;
+    confidence: number;
+    bbox: { x0: number; y0: number; x1: number; y1: number };
+  }>;
+  meanConfidence: number;
+  multiPassApplied: boolean;
+}
+
 /**
- * Recognize single image with preprocessing and multi-language support.
+ * Recognize single image with multi-pass preprocessing, card-boundary detection, and spatial layout extraction.
  */
-export async function processImageForOcr(
+export async function processImageForOcrDetailed(
   imageSource: File | HTMLCanvasElement,
   language: string = 'eng',
   onProgress?: (status: string, percent: number) => void,
-  options: { enhanceContrast?: boolean } = {}
-): Promise<string> {
+  options: { enhanceContrast?: boolean; multiPass?: boolean } = {}
+): Promise<ImageOcrDetailedResult> {
   if (onProgress) onProgress(`Loading ${language.toUpperCase()} OCR neural model...`, 15);
 
   const worker = await createWorker(language);
 
   try {
-    let canvasToProcess: HTMLCanvasElement;
+    let sourceCanvas: HTMLCanvasElement;
 
     if (imageSource instanceof HTMLCanvasElement) {
-      canvasToProcess = preprocessCanvasForOcr(imageSource, options);
+      sourceCanvas = imageSource;
     } else {
-      // Create canvas from File
       const img = new Image();
       const url = URL.createObjectURL(imageSource);
       await new Promise<void>((resolve, reject) => {
@@ -314,21 +324,147 @@ export async function processImageForOcr(
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Could not initialize canvas context.');
       ctx.drawImage(img, 0, 0);
-
-      canvasToProcess = preprocessCanvasForOcr(canvas, options);
+      sourceCanvas = canvas;
     }
 
-    if (onProgress) onProgress('Scanning character patterns and reading text layout...', 60);
+    // Pass 1: Global Preprocessed Pass
+    const processedCanvas = preprocessCanvasForOcr(sourceCanvas, options);
 
-    const ret = await worker.recognize(canvasToProcess);
-    const text = ret.data.text?.trim() || '';
+    if (onProgress) onProgress('Pass 1: Analyzing global document layout & character patterns...', 45);
 
-    if (!text) {
-      throw new Error('No readable text was detected in this image. Ensure the image has sharp typography and sufficient lighting.');
+    const ret1 = await worker.recognize(processedCanvas, {}, { blocks: true });
+    let text1 = ret1.data.text?.trim() || '';
+
+    const lines1: Array<{ text: string; confidence: number; bbox: { x0: number; y0: number; x1: number; y1: number } }> = [];
+    if (ret1.data.blocks) {
+      for (const b of ret1.data.blocks) {
+        for (const p of b.paragraphs) {
+          for (const l of p.lines) {
+            if (l.text.trim()) {
+              lines1.push({
+                text: l.text.trim(),
+                confidence: Math.round(l.confidence),
+                bbox: l.bbox,
+              });
+            }
+          }
+        }
+      }
     }
 
-    return text;
+    // Step: Detect if card is framed by background (desk/hands)
+    let minX = sourceCanvas.width;
+    let minY = sourceCanvas.height;
+    let maxX = 0;
+    let maxY = 0;
+    let keywordHits = 0;
+
+    for (const l of lines1) {
+      const upper = l.text.toUpperCase();
+      if (
+        upper.includes('INCOME TAX') ||
+        upper.includes('GOVT') ||
+        upper.includes('ACCOUNT') ||
+        upper.includes('PERMANENT') ||
+        upper.includes('AADHAAR') ||
+        upper.includes('UNIQUE IDENTIFICATION') ||
+        upper.includes('AUTHORITY') ||
+        upper.includes('ELECTION COMMISSION') ||
+        upper.includes('ELECTORAL') ||
+        upper.includes('भारत') ||
+        upper.includes('सरकार') ||
+        upper.includes('विभाग') ||
+        /\b[A-Z]{5}[0-9]{4}[A-Z]\b/.test(upper) ||
+        /\b\d{4}\s\d{4}\s\d{4}\b/.test(l.text)
+      ) {
+        keywordHits++;
+        minX = Math.min(minX, l.bbox.x0);
+        minY = Math.min(minY, l.bbox.y0);
+        maxX = Math.max(maxX, l.bbox.x1);
+        maxY = Math.max(maxY, l.bbox.y1);
+      }
+    }
+
+    const cardBoxWidth = maxX - minX;
+    const cardBoxHeight = maxY - minY;
+    const isFramedOnBackground =
+      keywordHits >= 2 &&
+      cardBoxWidth > 150 &&
+      cardBoxHeight > 100 &&
+      (cardBoxWidth < sourceCanvas.width * 0.88 || cardBoxHeight < sourceCanvas.height * 0.88);
+
+    // Pass 2: If card is framed on background, run localized high-resolution Pass
+    if (options.multiPass !== false && isFramedOnBackground) {
+      if (onProgress) onProgress('Pass 2: Running high-resolution card-region enhancement...', 75);
+
+      const padX = Math.round(cardBoxWidth * 0.12);
+      const padY = Math.round(cardBoxHeight * 0.15);
+      const cropX = Math.max(0, minX - padX);
+      const cropY = Math.max(0, minY - padY);
+      const cropW = Math.min(sourceCanvas.width - cropX, cardBoxWidth + padX * 2);
+      const cropH = Math.min(sourceCanvas.height - cropY, cardBoxHeight + padY * 2);
+
+      const cardCanvas = document.createElement('canvas');
+      cardCanvas.width = cropW * 2; // 2x upscale
+      cardCanvas.height = cropH * 2;
+      const cardCtx = cardCanvas.getContext('2d');
+      if (cardCtx) {
+        cardCtx.imageSmoothingEnabled = true;
+        cardCtx.imageSmoothingQuality = 'high';
+        cardCtx.drawImage(sourceCanvas, cropX, cropY, cropW, cropH, 0, 0, cardCanvas.width, cardCanvas.height);
+
+        const cardProcessed = preprocessCanvasForOcr(cardCanvas, { enhanceContrast: true });
+        const ret2 = await worker.recognize(cardProcessed, {}, { blocks: true });
+        const text2 = ret2.data.text?.trim() || '';
+
+        if (text2 && ret2.data.confidence >= ret1.data.confidence - 10) {
+          const lines2: Array<{ text: string; confidence: number; bbox: { x0: number; y0: number; x1: number; y1: number } }> = [];
+          if (ret2.data.blocks) {
+            for (const b of ret2.data.blocks) {
+              for (const p of b.paragraphs) {
+                for (const l of p.lines) {
+                  if (l.text.trim()) {
+                    lines2.push({
+                      text: l.text.trim(),
+                      confidence: Math.round(l.confidence),
+                      bbox: l.bbox,
+                    });
+                  }
+                }
+              }
+            }
+          }
+
+          return {
+            text: text2,
+            lines: lines2,
+            meanConfidence: Math.round(ret2.data.confidence),
+            multiPassApplied: true,
+          };
+        }
+      }
+    }
+
+    return {
+      text: text1,
+      lines: lines1,
+      meanConfidence: Math.round(ret1.data.confidence),
+      multiPassApplied: false,
+    };
   } finally {
     await worker.terminate();
   }
+}
+
+/**
+ * Recognize single image with preprocessing and multi-language support.
+ */
+export async function processImageForOcr(
+  imageSource: File | HTMLCanvasElement,
+  language: string = 'eng',
+  onProgress?: (status: string, percent: number) => void,
+  options: { enhanceContrast?: boolean } = {}
+): Promise<string> {
+  const result = await processImageForOcrDetailed(imageSource, language, onProgress, options);
+  return result.text;
 }

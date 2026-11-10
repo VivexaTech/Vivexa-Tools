@@ -7,14 +7,14 @@ export const Footer: React.FC = () => {
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 text-sm transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10">
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="group inline-block" aria-label="Vivexa Tools Homepage">
               <BrandLogo size="md" />
             </Link>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
-              All your everyday tools in one simple place. Merge PDFs, compress photos, create passport pictures, trim videos, and inspect colors privately in your web browser.
+              All your everyday tools in one simple place. Merge PDFs, compress photos, generate QR &amp; barcodes, calculate EMIs, create resumes, and process documents privately in your web browser.
             </p>
             <div className="flex flex-col gap-2 pt-2">
               <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
@@ -32,10 +32,10 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* PDF & Image Categories */}
+          {/* PDF & Documents */}
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-white text-xs tracking-wider uppercase mb-3">
-              Document & Photo
+              Document &amp; PDF
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/pdf/word-to-pdf" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium text-indigo-600 dark:text-indigo-400">
+                <Link href="/pdf/word-to-pdf" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                   Word to PDF
                 </Link>
               </li>
@@ -59,67 +59,91 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/pdf/split-pdf" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Split PDF
+                <Link href="/document/resume-generator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Resume Generator
                 </Link>
               </li>
               <li>
-                <Link href="/image" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Image Tools Hub
-                </Link>
-              </li>
-              <li>
-                <Link href="/image/passport-photo-maker" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Passport Photo Maker
-                </Link>
-              </li>
-              <li>
-                <Link href="/image/favicon-generator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Favicon Generator
+                <Link href="/document/document-details-extractor" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  ID Details Extractor
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Media & Color Tools */}
+          {/* QR, Barcode & Dev */}
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-white text-xs tracking-wider uppercase mb-3">
-              Media & Utilities
+              QR &amp; Barcode
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href="/audio" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Audio Tools Hub
+                <Link href="/qr-barcode" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  QR &amp; Barcode Hub
                 </Link>
               </li>
               <li>
-                <Link href="/audio/audio-converter" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Audio Format Converter
+                <Link href="/qr-barcode/qr-code-generator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium text-indigo-600 dark:text-indigo-400">
+                  QR Code Generator
                 </Link>
               </li>
               <li>
-                <Link href="/audio/audio-compressor" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Audio Compressor
+                <Link href="/qr-barcode/qr-code-scanner" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  QR Code Scanner
                 </Link>
               </li>
               <li>
-                <Link href="/video" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Video Tools Hub
+                <Link href="/qr-barcode/barcode-generator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Barcode Generator
                 </Link>
               </li>
               <li>
-                <Link href="/video/video-trimmer" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Video Trimmer
+                <Link href="/developer/json-formatter" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  JSON Formatter
                 </Link>
               </li>
               <li>
-                <Link href="/color" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Color Picker Tools
+                <Link href="/voice/speech-to-text" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Speech to Text
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Calculators & Finance */}
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-white text-xs tracking-wider uppercase mb-3">
+              Finance &amp; Math
+            </h3>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/calculator/age-calculator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Age Calculator
                 </Link>
               </li>
               <li>
-                <Link href="/color/color-picker-image" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                  Color Picker from Image
+                <Link href="/calculator/emi-calculator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium text-indigo-600 dark:text-indigo-400">
+                  EMI Calculator
+                </Link>
+              </li>
+              <li>
+                <Link href="/calculator/gst-calculator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  GST Calculator
+                </Link>
+              </li>
+              <li>
+                <Link href="/business/invoice-generator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Invoice Generator
+                </Link>
+              </li>
+              <li>
+                <Link href="/business/payslip-generator" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Payslip Generator
+                </Link>
+              </li>
+              <li>
+                <Link href="/business/income-expense-tracker" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                  Expense Tracker
                 </Link>
               </li>
             </ul>
@@ -128,7 +152,7 @@ export const Footer: React.FC = () => {
           {/* Platform & Legal */}
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-white text-xs tracking-wider uppercase mb-3">
-              Platform & Legal
+              Platform &amp; Legal
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
@@ -137,7 +161,7 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/tools" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <Link href="/tools" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">
                   All Tools Directory
                 </Link>
               </li>

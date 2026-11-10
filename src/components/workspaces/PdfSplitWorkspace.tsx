@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Dropzone } from '@/components/common/Dropzone';
 import { splitPdf, getPdfPageCount } from '@/lib/pdf/pdfProcessing';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { 
   FileText, 
   Scissors, 
@@ -219,6 +220,19 @@ export const PdfSplitWorkspace: React.FC = () => {
                   <span>Download Extracted PDF</span>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Real Live PDF Document Preview */}
+          {(file || extractedPdf) && (
+            <div className="pt-3 space-y-2">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+                {extractedPdf ? 'Extracted Output Preview:' : 'Document Page Preview:'}
+              </span>
+              <RealPdfViewer
+                source={extractedPdf ? extractedPdf.bytes : file}
+                title={extractedPdf ? extractedPdf.name : file?.name}
+              />
             </div>
           )}
         </div>

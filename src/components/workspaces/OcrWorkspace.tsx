@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Dropzone } from '@/components/common/Dropzone';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { processPdfForOcr, processImageForOcr, OcrResult, OcrPageItem } from '@/lib/pdf/pdfOcrHelper';
 import {
   ScanText,
@@ -239,6 +240,16 @@ export const OcrWorkspace: React.FC<OcrWorkspaceProps> = ({ toolSlug = 'image-to
               </div>
             </div>
           </div>
+
+          {/* Real Live PDF Page Preview */}
+          {isPdf && file && (
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+                Document Page Viewer:
+              </span>
+              <RealPdfViewer source={file} title={file.name} />
+            </div>
+          )}
 
           {/* Action / Progress Area */}
           {!extractedResult && !singleImageText ? (

@@ -5,6 +5,7 @@ import { Dropzone } from '@/components/common/Dropzone';
 import { isEncrypted, decryptPDF } from '@pdfsmaller/pdf-decrypt';
 import { PDFDocument } from 'pdf-lib';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import { 
   Lock, 
   Unlock, 
@@ -191,6 +192,11 @@ export const UnlockPdfWorkspace: React.FC = () => {
                   <RotateCcw className="w-4 h-4" />
                   Unlock Another
                 </button>
+              </div>
+
+              {/* Decrypted Document Live Preview */}
+              <div className="pt-2">
+                <RealPdfViewer source={decryptedBytes} title={`Decrypted: ${file?.name || 'Document.pdf'}`} />
               </div>
             </div>
           ) : (

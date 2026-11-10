@@ -1,4 +1,16 @@
-export type ToolCategory = 'pdf' | 'image' | 'audio' | 'video' | 'color';
+export type ToolCategory =
+  | 'pdf'
+  | 'image'
+  | 'audio'
+  | 'video'
+  | 'color'
+  | 'qr-barcode'
+  | 'calculator'
+  | 'developer'
+  | 'voice'
+  | 'student'
+  | 'business'
+  | 'document';
 
 export type ToolStatus = 'available' | 'experimental' | 'unsupported';
 

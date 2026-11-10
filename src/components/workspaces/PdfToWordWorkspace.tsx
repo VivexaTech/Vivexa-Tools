@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Dropzone } from '@/components/common/Dropzone';
 import { convertPdfToWord, PdfToWordResult } from '@/lib/pdf/pdfToWord';
 import { downloadBlob, formatBytes } from '@/lib/downloads';
+import { RealPdfViewer } from '@/components/pdf/RealPdfViewer';
 import {
   FileText,
   FileCheck,
@@ -243,6 +244,11 @@ export const PdfToWordWorkspace: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* Source Document Real Page Preview */}
+              <div className="pt-2">
+                <RealPdfViewer source={file} title={`Document Preview: ${file.name}`} />
+              </div>
             </div>
           )}
 

@@ -48,9 +48,64 @@ export const VIDEO_TOOLS: ToolDefinition[] = [
         answer: 'Standard MP4 (H.264), WebM (VP8/VP9), and MOV files supported by your browser are processed smoothly.'
       }
     ],
-    relatedToolSlugs: ['video-compressor', 'video-splitter', 'audio-converter'],
+    relatedToolSlugs: ['video-to-gif', 'video-compressor', 'video-splitter'],
     seoTitle: 'Video Trimmer Online Free - Cut and Trim Video Clips | Vivexa Tools',
     seoDescription: 'Trim and cut videos online for free. Set start and end points and export clips with complete local privacy.'
+  },
+  {
+    id: 'video-to-gif',
+    name: 'Video to GIF',
+    slug: 'video-to-gif',
+    category: 'video',
+    subcategory: 'Conversion',
+    shortDescription: 'Convert video clips (MP4, WebM, MOV) into animated GIFs with custom FPS, speed, and resolution.',
+    fullDescription: 'Convert your videos into high-quality animated GIFs directly in your browser without uploading to any server. Trim start and end points, choose resolution (320p, 480p, 640p), adjust frame rate from 5 to 20 FPS, and export animated GIFs instantly with local LZW compression.',
+    searchKeywords: ['video to gif', 'mp4 to gif', 'convert video to gif', 'make gif from video', 'webm to gif', 'mov to gif', 'gif maker'],
+    icon: 'Film',
+    supportedInputFormats: ['.mp4', '.webm', '.mov', '.ogg'],
+    supportedOutputFormats: ['.gif'],
+    processingEngine: 'HTML5 Video Canvas & Client-Side GIF LZW Engine',
+    status: 'available',
+    isPopular: true,
+    instructions: [
+      {
+        step: 1,
+        title: 'Upload your video',
+        description: 'Select your video file (MP4, WebM, or MOV).'
+      },
+      {
+        step: 2,
+        title: 'Choose clip boundaries & FPS',
+        description: 'Set Start and End timestamps to trim the exact moment. Select desired frame rate (e.g. 10 FPS) and resolution.'
+      },
+      {
+        step: 3,
+        title: 'Convert to GIF',
+        description: 'Click "Convert to Animated GIF". The browser renders and compresses frames locally.'
+      },
+      {
+        step: 4,
+        title: 'Preview and download',
+        description: 'Check the animated GIF preview and save the .gif file to your device.'
+      }
+    ],
+    faqs: [
+      {
+        question: 'Does converting video to GIF upload my video to a remote server?',
+        answer: 'No. The entire playback, frame extraction, palette quantization, and GIF LZW encoding happen 100% locally in your browser memory.'
+      },
+      {
+        question: 'What is the recommended frame rate for GIFs?',
+        answer: '10 FPS provides the ideal balance between smooth animation and compact file size for web and chat apps.'
+      },
+      {
+        question: 'Can I change the playback speed of the GIF?',
+        answer: 'Yes! You can choose 0.5x for slow motion or 1.5x / 2.0x for accelerated motion before converting.'
+      }
+    ],
+    relatedToolSlugs: ['video-trimmer', 'video-compressor', 'image-compressor'],
+    seoTitle: 'Video to GIF Converter Online Free - MP4 to GIF Locally | Vivexa Tools',
+    seoDescription: 'Convert video to GIF online for free. Turn MP4, WebM, and MOV into animated GIFs with custom FPS and resolution in your browser.'
   },
   {
     id: 'video-splitter',
